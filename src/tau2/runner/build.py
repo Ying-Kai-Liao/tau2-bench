@@ -348,7 +348,10 @@ def _build_env_kwargs(config: RunConfig, task: Task) -> dict:
         rk = dict(getattr(config, "retrieval_config_kwargs", None) or {})
         if rk:
             env_kwargs["retrieval_kwargs"] = rk
-    if getattr(config, "domain", None) == "banking_knowledge":
+    # LOCAL ADDITION (gate v1): banking_knowledge_gated reuses
+    # banking_knowledge's task files and call_discoverable_agent_tool
+    # pattern verbatim, so it needs the same read_log_allowlist derivation.
+    if getattr(config, "domain", None) in ("banking_knowledge", "banking_knowledge_gated"):
         env_kwargs["read_log_allowlist"] = _derive_read_log_allowlist(task)
     return env_kwargs
 

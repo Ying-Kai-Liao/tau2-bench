@@ -81,7 +81,11 @@ def _build_eval_env_kwargs(domain: str, task) -> Optional[dict]:
     required-read assertions (derived from the golden trajectory) silently
     stop discriminating. Mirrors tau2.runner.build._build_env_kwargs.
     """
-    if domain == "banking_knowledge":
+    # LOCAL ADDITION (gate v1): banking_knowledge_gated needs the same
+    # read_log_allowlist derivation as banking_knowledge (same task files,
+    # same call_discoverable_agent_tool logging pattern). Mirrors the
+    # corresponding hunk in tau2.runner.build._build_env_kwargs.
+    if domain in ("banking_knowledge", "banking_knowledge_gated"):
         from tau2.runner.build import _derive_read_log_allowlist
 
         return {"read_log_allowlist": _derive_read_log_allowlist(task)}

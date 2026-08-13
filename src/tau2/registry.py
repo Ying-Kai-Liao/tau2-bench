@@ -28,6 +28,12 @@ from tau2.domains.banking_knowledge.environment import (
 from tau2.domains.banking_knowledge.environment import (
     get_tasks as knowledge_domain_get_tasks,
 )
+from tau2.domains.banking_knowledge_gated.environment import (  # LOCAL ADDITION (gate v1)
+    get_environment as knowledge_gated_domain_get_environment,
+)
+from tau2.domains.banking_knowledge_gated.environment import (
+    get_tasks as knowledge_gated_domain_get_tasks,
+)
 from tau2.domains.mock.environment import get_environment as mock_domain_get_environment
 from tau2.domains.mock.environment import get_tasks as mock_domain_get_tasks
 from tau2.domains.retail.environment import (
@@ -36,6 +42,15 @@ from tau2.domains.retail.environment import (
 from tau2.domains.retail.environment import get_tasks as retail_domain_get_tasks
 from tau2.domains.retail.environment import (
     get_tasks_split as retail_domain_get_tasks_split,
+)
+from tau2.domains.retail_ctx.environment import (  # LOCAL ADDITION (oracle-gap)
+    get_environment as retail_ctx_domain_get_environment,
+)
+from tau2.domains.retail_ctx.environment import (
+    get_tasks as retail_ctx_domain_get_tasks,
+)
+from tau2.domains.retail_ctx.environment import (
+    get_tasks_split as retail_ctx_domain_get_tasks_split,
 )
 from tau2.domains.telecom.environment import (
     get_environment_manual_policy as telecom_domain_get_environment_manual_policy,
@@ -327,6 +342,15 @@ try:
         get_task_splits=retail_domain_get_tasks_split,
     )
 
+    # LOCAL ADDITION (oracle-gap experiment): retail with policy-as-tools instead
+    # of policy-in-system-prompt. Additive only; the retail domain is untouched.
+    registry.register_domain(retail_ctx_domain_get_environment, "retail_ctx")
+    registry.register_tasks(
+        retail_ctx_domain_get_tasks,
+        "retail_ctx",
+        get_task_splits=retail_ctx_domain_get_tasks_split,
+    )
+
     registry.register_domain(telecom_domain_get_environment_manual_policy, "telecom")
     registry.register_domain(
         telecom_domain_get_environment_workflow_policy, "telecom-workflow"
@@ -346,6 +370,18 @@ try:
 
     registry.register_domain(knowledge_domain_get_environment, "banking_knowledge")
     registry.register_tasks(knowledge_domain_get_tasks, "banking_knowledge")
+
+    # LOCAL ADDITION (gate v1 experiment): banking_knowledge with a commit
+    # gate (ledger + spec table + verdict engine, gate_core.py) intercepting
+    # assistant-side mutating tool calls at Environment.get_response. Same
+    # db/tasks/policy as banking_knowledge, additive only; banking_knowledge
+    # itself is untouched.
+    registry.register_domain(
+        knowledge_gated_domain_get_environment, "banking_knowledge_gated"
+    )
+    registry.register_tasks(
+        knowledge_gated_domain_get_tasks, "banking_knowledge_gated"
+    )
 
     logger.debug(
         f"Default components registered successfully. Registry info: {json.dumps(registry.get_info().model_dump(), indent=2)}"

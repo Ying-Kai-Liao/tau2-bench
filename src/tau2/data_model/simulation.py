@@ -486,8 +486,25 @@ class BaseRunConfig(BaseModel):
 
     @model_validator(mode="after")
     def _default_banking_retrieval_config(self) -> "BaseRunConfig":
-        """Default retrieval_config to alltools for banking_knowledge."""
-        if self.domain == "banking_knowledge" and self.retrieval_config is None:
+        """Default retrieval_config to alltools for banking_knowledge.
+
+        LOCAL ADDITION (gate v1): also covers banking_knowledge_gated, which
+        reuses banking_knowledge's retrieval-variant machinery verbatim.
+        Without this, a RunConfig(domain="banking_knowledge_gated") with no
+        explicit --retrieval-config would leave retrieval_config=None, and
+        get_environment() would fall back to
+        tau2.domains.banking_knowledge.retrieval.DEFAULT_RETRIEVAL_VARIANT
+        ("alltools") anyway at construction time -- so in practice the two
+        paths converge on the same variant today, but this keeps the
+        RunConfig's own recorded/serialized retrieval_config field (and
+        anything that reads it before environment construction, e.g. the
+        Info metadata's `get_info_policy_override`) truthful for the gated
+        domain instead of silently None.
+        """
+        if (
+            self.domain in ("banking_knowledge", "banking_knowledge_gated")
+            and self.retrieval_config is None
+        ):
             object.__setattr__(self, "retrieval_config", "alltools")
         return self
 
